@@ -14,5 +14,4 @@ struct PokerCalApp: App {
             ContentView()
         }
     }
-}
-asd
+}lksjdf
