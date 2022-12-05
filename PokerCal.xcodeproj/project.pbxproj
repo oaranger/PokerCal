@@ -13,6 +13,12 @@
 		861463FD293C2B710050D702 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 861463EB293C2B6F0050D702 /* ContentView.swift */; };
 		861463FE293C2B710050D702 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 861463EC293C2B710050D702 /* Assets.xcassets */; };
 		861463FF293C2B710050D702 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 861463EC293C2B710050D702 /* Assets.xcassets */; };
+		86E2C50A293D321D0057CE87 /* TextFieldAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E2C509293D321D0057CE87 /* TextFieldAlert.swift */; };
+		86E2C50B293D321D0057CE87 /* TextFieldAlert.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E2C509293D321D0057CE87 /* TextFieldAlert.swift */; };
+		86E2C510293D3CD30057CE87 /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E2C50F293D3CD30057CE87 /* PlayerView.swift */; };
+		86E2C511293D3CD30057CE87 /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E2C50F293D3CD30057CE87 /* PlayerView.swift */; };
+		86E2C513293D3D0A0057CE87 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E2C512293D3D0A0057CE87 /* Player.swift */; };
+		86E2C514293D3D0A0057CE87 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E2C512293D3D0A0057CE87 /* Player.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -22,6 +28,9 @@
 		861463F1293C2B710050D702 /* PokerCal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PokerCal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		861463F7293C2B710050D702 /* PokerCal.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = PokerCal.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		861463F9293C2B710050D702 /* macOS.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = macOS.entitlements; sourceTree = "<group>"; };
+		86E2C509293D321D0057CE87 /* TextFieldAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldAlert.swift; sourceTree = "<group>"; };
+		86E2C50F293D3CD30057CE87 /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
+		86E2C512293D3D0A0057CE87 /* Player.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,6 +65,9 @@
 			children = (
 				861463EA293C2B6F0050D702 /* PokerCalApp.swift */,
 				861463EB293C2B6F0050D702 /* ContentView.swift */,
+				86E2C50F293D3CD30057CE87 /* PlayerView.swift */,
+				86E2C512293D3D0A0057CE87 /* Player.swift */,
+				86E2C509293D321D0057CE87 /* TextFieldAlert.swift */,
 				861463EC293C2B710050D702 /* Assets.xcassets */,
 			);
 			path = Shared;
@@ -177,7 +189,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				861463FC293C2B710050D702 /* ContentView.swift in Sources */,
+				86E2C50A293D321D0057CE87 /* TextFieldAlert.swift in Sources */,
 				861463FA293C2B710050D702 /* PokerCalApp.swift in Sources */,
+				86E2C510293D3CD30057CE87 /* PlayerView.swift in Sources */,
+				86E2C513293D3D0A0057CE87 /* Player.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -186,7 +201,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				861463FD293C2B710050D702 /* ContentView.swift in Sources */,
+				86E2C50B293D321D0057CE87 /* TextFieldAlert.swift in Sources */,
 				861463FB293C2B710050D702 /* PokerCalApp.swift in Sources */,
+				86E2C511293D3CD30057CE87 /* PlayerView.swift in Sources */,
+				86E2C514293D3D0A0057CE87 /* Player.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
