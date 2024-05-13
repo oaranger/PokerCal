@@ -34,7 +34,7 @@ struct TextFieldAlert<Presenting>: View where Presenting: View {
                     .padding(.leading, 10)
                     .frame(height: 56)
                     .overlay(
-                        RoundedRectangle(cornerRadius: 8).stroke(Color.gray, lineWidth: 0.5)
+                        RoundedRectangle(cornerRadius: 8).stroke(Color.black, lineWidth: 0.5)
                     )
                     
                     HStack {
@@ -79,20 +79,26 @@ struct TextFieldAlert<Presenting>: View where Presenting: View {
                 )
                 .shadow(radius: 1)
                 .opacity(self.isShowing ? 1 : 0)
+                .background(Color.gray)
                 .dimBG(condition: isShowing)
+                .hidden(isShowing)
             }
         }
     }
 }
 
 extension View {
-    func textFieldAlert(isShowing: Binding<Bool>,
-                        players: Binding<[Player]>,
-                        title: String) -> some View {
-        TextFieldAlert(isShowing: isShowing,
-                       players: players,
-                       presenting: self,
-                       title: title)
+    func textFieldAlert(
+        isShowing: Binding<Bool>,
+        players: Binding<[Player]>,
+        title: String
+    ) -> some View {
+        TextFieldAlert(
+            isShowing: isShowing,
+            players: players,
+            presenting: self,
+            title: title
+        )
     }
 }
 
@@ -102,7 +108,7 @@ extension View {
         if condition {
             ZStack {
                 Color.black
-                    .opacity(0.5)
+                    .opacity(0.2)
                     .onTapGesture {
                         hideKeyboard()
                     }
@@ -113,6 +119,27 @@ extension View {
         } else {
             self
         }
+    }
+}
+
+struct ConditionHiddenViewModifier: ViewModifier {
+    let shouldHidden: Bool
+    
+    func body(content: Content) -> some View {
+        Group {
+            if !shouldHidden {
+                content
+                    .hidden()
+            } else {
+                content
+            }
+        }
+    }
+}
+
+extension View {
+    func hidden(_ shouldHidden: Bool) -> some View {
+        modifier(ConditionHiddenViewModifier(shouldHidden: shouldHidden))
     }
 }
 

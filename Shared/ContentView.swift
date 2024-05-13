@@ -107,7 +107,7 @@ struct ContentView: View {
                         Text(String(player.name).fillSpace(limit: 5, alignment: .leading))
                             .bold()
                             .frame(width: 70)
-                            .font(.system(size: 36, design: .monospaced))
+                            .font(.system(size: 20, design: .monospaced))
                         
                         Group {
                             Text("\(player.totalBuyIn)".fillSpace(limit: 4))
