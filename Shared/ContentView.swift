@@ -47,6 +47,17 @@ struct ContentView: View {
     @State private var isAddingPlayer: Bool = false
     @State private var isShowingResetAlert: Bool = false
     
+    init() {
+        _players = State(initialValue: Self.loadPlayers())
+    }
+    
+    private var currentDate: String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium  // Example: Mar 1, 2025
+        formatter.timeStyle = .none    // Only show the date, not time
+        return formatter.string(from: Date())
+    }
+    
     private var groupSpent: Int {
         players.filter { $0.spent > 0 }.map { Int($0.spent) }.reduce(0,+)
     }
@@ -84,6 +95,7 @@ struct ContentView: View {
     
     var body: some View {
         VStack(spacing: 10) {
+            Label("Today: \(currentDate)", systemImage: "calendar")
             List {
                 HStack() {
                     Text("Name")
@@ -102,7 +114,7 @@ struct ContentView: View {
                 .font(.system(size: 16, design: .monospaced))
                 .background(Color.yellow)
                 
-                ForEach(players, id: \.name) { player in
+                ForEach(players) { player in
                     HStack {
                         Text(String(player.name).fillSpace(limit: 5, alignment: .leading))
                             .bold()
@@ -199,7 +211,7 @@ struct ContentView: View {
                 }
                 .alert("Are you sure to reset?", isPresented: $isShowingResetAlert) {
                     Button {
-                        players = players.map { Player(name: $0.name) }
+                        players = players.map { Player(name: $0.name, buyInHistory: []) }
                     } label: {
                         Text("OK")
                     }
@@ -243,6 +255,28 @@ struct ContentView: View {
         }
         .opacity(isAddingPlayer ? 0.2 : 1)
         .textFieldAlert(isShowing: $isAddingPlayer, players: $players, title: "Add a player")
+        .onChange(of: players) { _ in
+            savePlayers()
+        }
+    }
+    
+    // ** Save players to UserDefaults **
+    func savePlayers() {
+        let encoder = JSONEncoder()
+        if let encoded = try? encoder.encode(players) {
+            UserDefaults.standard.set(encoded, forKey: "savedPlayers")
+        }
+    }
+    
+    // ** Load players from UserDefaults **
+    static func loadPlayers() -> [Player] {
+        if let savedData = UserDefaults.standard.data(forKey: "savedPlayers") {
+            let decoder = JSONDecoder()
+            if let decoded = try? decoder.decode([Player].self, from: savedData) {
+                return decoded
+            }
+        }
+        return []
     }
 }
 

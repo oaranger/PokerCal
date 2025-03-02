@@ -53,7 +53,9 @@ struct TextFieldAlert<Presenting>: View where Presenting: View {
                         Button(action: {
                             guard !name.isEmpty else { return }
                             var player = Player(name: name)
-                            player.buyInHistory = [(Int(buyIn) ?? 0, String.currentTime)]
+//                            player.buyInHistory = [(Int(buyIn) ?? 0, String.currentTime)]
+                            let buyInEntry = BuyInEntry(amount: Int(buyIn) ?? 0, timestamp: String.currentTime)
+                            player.buyInHistory = [buyInEntry]
                             player.spent = Int(spent) ?? 0
                             players.insert(player, at: 0)
                             name = ""

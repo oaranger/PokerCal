@@ -71,11 +71,11 @@ struct PlayerView: View {
                 }
             }
             List() {
-                ForEach(player.buyInHistory, id: \.1) { (buyin, time) in
+                ForEach(player.buyInHistory, id: \.timestamp) { entry in
                     HStack {
-                        Text("\(buyin)")
+                        Text("\(entry.amount)")
                         Spacer()
-                        Text(time)
+                        Text(entry.timestamp)
                     }
                 }
                 .onDelete(perform: delete)
@@ -97,26 +97,17 @@ struct PlayerView: View {
                         RoundedRectangle(cornerRadius: 16).stroke(isFocused ? Color.blue : Color.gray, lineWidth: 1)
                     )
                     .keyboardType(.numberPad)
-                    .toolbar {
-                        ToolbarItemGroup(placement: .keyboard) {
-                            HStack {
-                                Spacer()
-                                Button {
-                                    isFocused = false
-                                } label: {
-                                    Text("Done")
-                                        .bold()
-                                }
-                            }
-                        }
-                    }
                     
                 Button {
                     guard let newValue = Int(input), newValue > 0 else { return }
+                    let newEntry = BuyInEntry(amount: newValue, timestamp: String.currentTime)
                     switch inputType {
-                    case .buy: player.buyInHistory.insert((newValue, String.currentTime), at: 0)
-                    case .checkout: player.checkout = newValue
-                    case .spent: player.spent = newValue
+                    case .buy:
+                        player.buyInHistory.insert(newEntry, at: 0)
+                    case .checkout:
+                        player.checkout = newValue
+                    case .spent:
+                        player.spent = newValue
                     }
                     input = ""
                 } label: {
@@ -128,6 +119,20 @@ struct PlayerView: View {
                 .foregroundColor(Color.red)
             }
         }
-        .padding()        
+        .padding()
+        .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                HStack {
+                    Spacer()
+                    Button {
+                        isFocused = false
+                    } label: {
+                        Text("Done")
+                            .bold()
+                    }
+                }
+            }
+        }
     }
+    
 }

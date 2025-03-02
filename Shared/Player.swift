@@ -7,23 +7,32 @@
 
 import SwiftUI
 
-struct Player {
+struct BuyInEntry: Codable, Equatable {
+    var amount: Int
+    var timestamp: String
+    
+    static func == (lhs: BuyInEntry, rhs: BuyInEntry) -> Bool {
+        return lhs.amount == rhs.amount &&
+        lhs.timestamp == rhs.timestamp
+    }
+}
+
+struct Player: Codable, Identifiable, Equatable {
+    var id: UUID = UUID()
     var name: String
-    var buyInHistory: [(Int, String)] = []
+    var buyInHistory: [BuyInEntry]
     var checkout: Int
     var spent: Int
-    
+
     init(name: String, buyInHistory: [Int] = [50], checkout: Int = 0, spent: Int = 0) {
         self.name = name
         self.checkout = checkout
         self.spent = spent
-        buyInHistory.forEach {
-            self.buyInHistory.append(($0, String.currentTime))
-        }
+        self.buyInHistory = buyInHistory.map { BuyInEntry(amount: $0, timestamp: String.currentTime) }
     }
     
     var totalBuyIn: Int {
-        buyInHistory.map { $0.0 }.reduce(0, +)
+        buyInHistory.map { $0.amount }.reduce(0, +)
     }
     
     var current: Int {
@@ -38,6 +47,14 @@ struct Player {
         buyInHistory = []
         checkout = 0
         spent = 0
+    }
+    
+    static func == (lhs: Player, rhs: Player) -> Bool {
+        return lhs.id == rhs.id
+            && lhs.name == rhs.name
+            && lhs.buyInHistory == rhs.buyInHistory
+            && lhs.checkout == rhs.checkout
+            && lhs.spent == rhs.spent
     }
     
     func misMatchAdjustment(groupWin: Int, groupLose: Int) -> Int {
