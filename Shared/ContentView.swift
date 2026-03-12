@@ -82,6 +82,15 @@ struct ContentView: View {
         return 0
     }
     
+    private var shouldShownFoodSection: Bool {
+        for player in players {
+            if player.spent > 0 {
+                return true
+            }
+        }
+        return false
+    }
+    
     // mismatched after checkout
     // Positive: deficit i.e group win more than lose
     // Negative: surplus i.e group lose more than win
@@ -94,7 +103,7 @@ struct ContentView: View {
     }
     
     var body: some View {
-        VStack(spacing: 10) {
+        VStack(spacing: 0) {
             Label("Today: \(currentDate)", systemImage: "calendar")
             List {
                 HStack() {
@@ -149,25 +158,27 @@ struct ContentView: View {
                 }
                 .onDelete(perform: deleteUser)
                 
-                HStack() {
-                    HStack {
-                        Image(systemName: "fork.knife.circle.fill")
-                            .font(.largeTitle)
-                            .foregroundColor(.orange)
-                        Text("Total = \(players.map { $0.spent }.reduce(0, +))")
-                    }
-                    .frame(maxWidth: .infinity)
-                    Divider()
-                    VStack(alignment: .leading) {
-                        ForEach(players, id:\.name) { player in
-                            if player.spent > 0 {
-                                Text("\(player.name) \(player.spent)")
+                if shouldShownFoodSection {
+                    HStack() {
+                        HStack {
+                            Image(systemName: "fork.knife.circle.fill")
+                                .font(.largeTitle)
+                                .foregroundColor(.orange)
+                            Text("Total = \(players.map { $0.spent }.reduce(0, +))")
+                        }
+                        .frame(maxWidth: .infinity)
+                        Divider()
+                        VStack(alignment: .leading) {
+                            ForEach(players, id:\.name) { player in
+                                if player.spent > 0 {
+                                    Text("\(player.name) \(player.spent)")
+                                }
                             }
                         }
+                        .frame(maxWidth: .infinity)
                     }
-                    .frame(maxWidth: .infinity)
+                    .padding(2)
                 }
-                .padding(2)
                 
                 HStack {
                     Spacer()
@@ -190,22 +201,21 @@ struct ContentView: View {
                     }
                     Spacer()
                 }
-                .padding(.bottom, 10)
+                .padding(.bottom, 5)
             }
             .listStyle(PlainListStyle())
             .border(isMismatched ? Color.red : Color.green, width: 2)
-            .frame(minHeight: UIScreen.main.bounds.size.height * 0.55)
+            .frame(minHeight: UIScreen.main.bounds.size.height * 0.5)
             
             HStack {
                 Button {
                     isShowingResetAlert.toggle()
                 } label: {
                     ZStack {
-                        Circle()
-                            .fill(Color.blue)
-                            .frame(width: 65, height: 65)
+                        RoundedRectangle(cornerSize: CGSize(width: 8, height: 8))
+                            .fill(Color.red)
+                            .frame(width: 150, height: 45)
                         Text("Reset")
-                            .bold()
                             .foregroundColor(Color.white)
                     }
                 }
@@ -227,14 +237,14 @@ struct ContentView: View {
                     ZStack {
                         RoundedRectangle(cornerSize: CGSize(width: 8, height: 8))
                             .fill(Color.blue)
-                            .frame(width: 150, height: 50)
+                            .frame(width: 150, height: 45)
                         Text("Add Player")
                             .foregroundColor(Color.white)
                     }
                 }
             }
-            .padding(.vertical, 10)
-            .padding(.horizontal, 10)
+            .padding(.top, 10)
+            .padding(.horizontal, 40)
             
         }
         .sheet(isPresented: $showingSheet) {
