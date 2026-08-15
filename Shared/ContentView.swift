@@ -98,6 +98,73 @@ struct ContentView: View {
         groupWin - abs(groupLose)
     }
 
+    private func balancedRoundedValues(
+        _ exactValues: [(id: UUID, value: CGFloat)]
+    ) -> [UUID: Int] {
+        let candidates = exactValues.enumerated().map { index, item in
+            let lowerValue = Int((item.value / 5).rounded(.down)) * 5
+            return (
+                id: item.id,
+                lowerValue: lowerValue,
+                remainder: item.value - CGFloat(lowerValue),
+                order: index
+            )
+        }
+
+        var values = Dictionary(uniqueKeysWithValues: candidates.map { ($0.id, $0.lowerValue) })
+        let lowerTotal = candidates.reduce(0) { $0 + $1.lowerValue }
+        let incrementsNeeded = min(candidates.count, max(0, -lowerTotal / 5))
+
+        let rankedCandidates = candidates.sorted {
+            if $0.remainder == $1.remainder {
+                return $0.order < $1.order
+            }
+            return $0.remainder > $1.remainder
+        }
+
+        for candidate in rankedCandidates.prefix(incrementsNeeded) {
+            values[candidate.id, default: candidate.lowerValue] += 5
+        }
+
+        return values
+    }
+
+    private var mismatchAdjustments: [UUID: Int] {
+        guard isMismatched else { return [:] }
+
+        let exactAdjustments = players.map { player in
+            (
+                id: player.id,
+                value: player.misMatchAdjustment(groupWin: groupWin, groupLose: groupLose)
+            )
+        }
+        return balancedRoundedValues(exactAdjustments)
+    }
+
+    private func adjustment(for player: Player) -> Int {
+        guard isMismatched else { return player.current }
+        return mismatchAdjustments[player.id] ?? player.current
+    }
+
+    private var finalValues: [UUID: Int] {
+        let adjustedGroupWin = players.reduce(0) { total, player in
+            total + max(0, adjustment(for: player))
+        }
+        let exactFinalValues = players.map { player in
+            let valueAfterFood = player.afterFood(
+                groupSpent: groupSpent,
+                adjustedGroupWin: adjustedGroupWin,
+                adjustment: adjustment(for: player)
+            )
+            return (id: player.id, value: valueAfterFood)
+        }
+        return balancedRoundedValues(exactFinalValues)
+    }
+
+    private func finalValue(for player: Player) -> Int {
+        finalValues[player.id] ?? 0
+    }
+
     private func deleteUser(at offsets: IndexSet) {
         players.remove(atOffsets: offsets)
     }
@@ -135,18 +202,25 @@ struct ContentView: View {
                             Spacer()
                             Text("\(player.checkout)".fillSpace(limit: 4))
                             Spacer()
-                            Text("\(player.current)".fillSpace(limit: 4))
-                                .foregroundColor(player.winning ? Color.green : Color.red)
-                            Spacer()
-                            Text("\(player.misMatchAdjustment(groupWin: groupWin, groupLose: groupLose))".fillSpace(limit: 4))
-                            Spacer()
+                            if isMismatched {
+                                Text("\(player.current)".fillSpace(limit: 4))
+                                    .foregroundColor(player.winning ? Color.green : Color.red)
+                                Spacer()
+                                Text("\(adjustment(for: player))".fillSpace(limit: 4))
+                                Spacer()
+                            } else {
+                                Text("_".fillSpace(limit: 4))
+                                Spacer()
+                                Text("_".fillSpace(limit: 4))
+                                Spacer()
+                            }
                         }
                         .font(.system(size: 14, design: .monospaced))
                         
-                            Text("\(player.afterFood(groupSpent: groupSpent, groupWin: groupWin, groupLose: groupLose))".fillSpace(limit: 5))
+                            Text("\(finalValue(for: player))".fillSpace(limit: 5))
                                 .bold()
                                 .padding(.horizontal, 5)
-                                .background(player.afterFood(groupSpent: groupSpent, groupWin: groupWin, groupLose: groupLose) > 0 ? Color.green : Color.red)
+                                .background(finalValue(for: player) > 0 ? Color.green : Color.red)
                                 .cornerRadius(4)
                                 .fixedSize()
                     }

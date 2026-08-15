@@ -56,45 +56,39 @@ struct Player: Codable, Identifiable, Equatable {
             && lhs.checkout == rhs.checkout
             && lhs.spent == rhs.spent
     }
-    
-    func misMatchAdjustment(groupWin: Int, groupLose: Int) -> Int {
+
+    func misMatchAdjustment(groupWin: Int, groupLose: Int) -> CGFloat {
         switch (groupWin - abs(groupLose) > 0, winning) {
         // group win more than lose, winning
         case (true, true):
             let newGroupWin = abs(groupLose)
-            return Int(CGFloat(newGroupWin) * (CGFloat(current) / CGFloat(groupWin)))
+            return CGFloat(newGroupWin) * (CGFloat(current) / CGFloat(groupWin))
         // group win more than lose, losing
         case (true, false):
-            return current
+            return CGFloat(current)
         // group lose more than win, losing
         case (false, false):
             let newGroupLose = -groupWin
-            return Int(CGFloat(newGroupLose) * CGFloat(current) / CGFloat(groupLose))
+            return CGFloat(newGroupLose) * CGFloat(current) / CGFloat(groupLose)
         // group lose more than win, winning
         case (false, true):
-            return current
+            return CGFloat(current)
         }
     }
     
-    func afterFood(groupSpent: Int, groupWin: Int, groupLose: Int) -> Int {
-        
-        let postMisMatchAdjustment = CGFloat(misMatchAdjustment(groupWin: groupWin, groupLose: groupLose))
-        guard groupWin != 0, groupLose != 0 else { return Int(postMisMatchAdjustment)}
-        let groupWin = CGFloat(groupWin)
-        let groupLose = CGFloat(groupLose)
+    func afterFood(groupSpent: Int, adjustedGroupWin: Int, adjustment: Int) -> CGFloat {
+        let postMisMatchAdjustment = CGFloat(adjustment)
+        guard adjustedGroupWin > 0 else { return postMisMatchAdjustment }
+
+        let adjustedGroupWin = CGFloat(adjustedGroupWin)
         let groupSpent = CGFloat(groupSpent)
         let spent = CGFloat(spent)
-        switch (groupWin - abs(groupLose) > 0, winning) {
-        case (true, true):
-            let newGroupWin = CGFloat(abs(groupLose))
-            return Int(postMisMatchAdjustment - (postMisMatchAdjustment / newGroupWin) * groupSpent + spent)
-        case (true, false):
-            return Int(postMisMatchAdjustment + spent)
-        case (false, false):
-            return Int(postMisMatchAdjustment + spent)
-        case (false, true):
-            let newGroupLose = groupWin
-            return Int(postMisMatchAdjustment - (postMisMatchAdjustment / newGroupLose) * groupSpent + spent)
+
+        if adjustment > 0 {
+            return postMisMatchAdjustment
+                - (postMisMatchAdjustment / adjustedGroupWin) * groupSpent
+                + spent
         }
+        return postMisMatchAdjustment + spent
     }
 }
