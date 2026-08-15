@@ -7,20 +7,9 @@
 
 import SwiftUI
 
-extension String {
-    static var currentTime: String {
-        let now = Date()
-        let hour = (Calendar.current.component(.hour, from: now))
-        let minute = (Calendar.current.component(.minute, from: now))
-        let second = (Calendar.current.component(.second, from: now))
-        return String("\(hour):\(minute):\(second)")
-    }
-}
-
 struct PlayerView: View {
     @Binding var player: Player
     @State private var input: String = ""
-    @State private var checkout: String = ""
     @State private var inputType: InputType = .buy
     @FocusState var isFocused: Bool
     
@@ -45,7 +34,7 @@ struct PlayerView: View {
                 Spacer()
                 Text("("+String(player.current)+")")
                     .font(Font.title2)
-                    .foregroundColor(player.winning ? Color.green : Color.red)
+                    .foregroundStyle(player.winning ? Color.green : Color.red)
                     .opacity(0.8)
             }
             
@@ -71,7 +60,7 @@ struct PlayerView: View {
                 }
             }
             List() {
-                ForEach(player.buyInHistory, id: \.timestamp) { entry in
+                ForEach(player.buyInHistory) { entry in
                     HStack {
                         Text("\(entry.amount)")
                         Spacer()
@@ -96,11 +85,22 @@ struct PlayerView: View {
                     .overlay(
                         RoundedRectangle(cornerRadius: 16).stroke(isFocused ? Color.blue : Color.gray, lineWidth: 1)
                     )
-                    .keyboardType(.numberPad)
+                    .numericKeyboard()
                     
-                Button {
-                    guard let newValue = Int(input), newValue > 0 else { return }
-                    let newEntry = BuyInEntry(amount: newValue, timestamp: String.currentTime)
+                Button("Add") {
+                    guard let newValue = Int(input) else { return }
+
+                    // Only buy-in requires value > 0
+                    if inputType == .buy && newValue <= 0 {
+                        return
+                    }
+
+                    // Checkout and spent can be 0 or positive
+                    if newValue < 0 {
+                        return
+                    }
+
+                    let newEntry = BuyInEntry(amount: newValue)
                     switch inputType {
                     case .buy:
                         player.buyInHistory.insert(newEntry, at: 0)
@@ -110,17 +110,19 @@ struct PlayerView: View {
                         player.spent = newValue
                     }
                     input = ""
-                } label: {
-                    Text("Add")
-                        .font(.headline)
                 }
+                .font(.headline)
                 .frame(width: 100, height: 56)
-                .border(Color.gray)
-                .foregroundColor(Color.red)
+                .overlay(
+                    RoundedRectangle(cornerRadius: 8)
+                        .stroke(Color.gray, lineWidth: 1)
+                )
+                .foregroundStyle(Color.red)
             }
         }
         .padding()
         .toolbar {
+#if os(iOS)
             ToolbarItemGroup(placement: .keyboard) {
                 HStack {
                     Spacer()
@@ -132,7 +134,19 @@ struct PlayerView: View {
                     }
                 }
             }
+#endif
         }
     }
     
+}
+
+extension View {
+    @ViewBuilder
+    func numericKeyboard() -> some View {
+#if os(iOS)
+        keyboardType(.numberPad)
+#else
+        self
+#endif
+    }
 }

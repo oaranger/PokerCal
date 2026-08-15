@@ -21,27 +21,8 @@ extension String {
     }
 }
 
-extension View {
-    @ViewBuilder
-    func monoFontSpace() -> some View {
-        if #available(iOS 16, *) {
-            self
-                .monospaced()
-        } else {
-            self
-        }
-    }
-}
-
 struct ContentView: View {
-    @State private var players: [Player] = [
-        Player(name: "Binh", buyInHistory: [50,100], checkout: 120, spent: 20),
-        Player(name: "Hieu", buyInHistory: [100], checkout: 120),
-        Player(name: "Tai", checkout: 150, spent: 30),
-        Player(name: "Hoang", buyInHistory: [50,50], checkout: 50, spent: 10),
-        Player(name: "Do", buyInHistory: [100, 100], checkout: 350),
-        Player(name: "Long", buyInHistory: [50,50], spent: 5)
-    ]
+    @State private var players: [Player] = []
     @State private var showingSheet = false
     @State private var selectedPlayer: Player = Player(name: "random")
     @State private var isAddingPlayer: Bool = false
@@ -58,28 +39,16 @@ struct ContentView: View {
         return formatter.string(from: Date())
     }
     
-    private var groupSpent: Int {
-        players.filter { $0.spent > 0 }.map { Int($0.spent) }.reduce(0,+)
-    }
-    
     private var groupWin: Int {
-        players.filter { $0.winning }.map { $0.current }.reduce(0,+)
+        players.lazy.filter(\.winning).map(\.current).reduce(0, +)
     }
     
     private var groupLose: Int {
-        players.filter { !$0.winning }.map { $0.current }.reduce(0, +)
+        players.lazy.filter { !$0.winning }.map(\.current).reduce(0, +)
     }
     
     private var isMismatched: Bool {
-        players.map { $0.current }.reduce(0,+) != 0
-    }
-    
-    private var groupDeficit: Int {
-        groupWin - abs(groupLose)
-    }
-    
-    private var groupSurplus: Int {
-        return 0
+        players.lazy.map(\.current).reduce(0, +) != 0
     }
     
     private var shouldShownFoodSection: Bool {
@@ -91,93 +60,22 @@ struct ContentView: View {
         return false
     }
     
-    // mismatched after checkout
-    // Positive: deficit i.e group win more than lose
-    // Negative: surplus i.e group lose more than win
-    private var groupDiff: Int {
-        groupWin - abs(groupLose)
-    }
-
-    private func balancedRoundedValues(
-        _ exactValues: [(id: UUID, value: CGFloat)]
-    ) -> [UUID: Int] {
-        let candidates = exactValues.enumerated().map { index, item in
-            let lowerValue = Int((item.value / 5).rounded(.down)) * 5
-            return (
-                id: item.id,
-                lowerValue: lowerValue,
-                remainder: item.value - CGFloat(lowerValue),
-                order: index
-            )
-        }
-
-        var values = Dictionary(uniqueKeysWithValues: candidates.map { ($0.id, $0.lowerValue) })
-        let lowerTotal = candidates.reduce(0) { $0 + $1.lowerValue }
-        let incrementsNeeded = min(candidates.count, max(0, -lowerTotal / 5))
-
-        let rankedCandidates = candidates.sorted {
-            if $0.remainder == $1.remainder {
-                return $0.order < $1.order
-            }
-            return $0.remainder > $1.remainder
-        }
-
-        for candidate in rankedCandidates.prefix(incrementsNeeded) {
-            values[candidate.id, default: candidate.lowerValue] += 5
-        }
-
-        return values
-    }
-
-    private var mismatchAdjustments: [UUID: Int] {
-        guard isMismatched else { return [:] }
-
-        let exactAdjustments = players.map { player in
-            (
-                id: player.id,
-                value: player.misMatchAdjustment(groupWin: groupWin, groupLose: groupLose)
-            )
-        }
-        return balancedRoundedValues(exactAdjustments)
-    }
-
-    private func adjustment(for player: Player) -> Int {
-        guard isMismatched else { return player.current }
-        return mismatchAdjustments[player.id] ?? player.current
-    }
-
-    private var finalValues: [UUID: Int] {
-        let adjustedGroupWin = players.reduce(0) { total, player in
-            total + max(0, adjustment(for: player))
-        }
-        let exactFinalValues = players.map { player in
-            let valueAfterFood = player.afterFood(
-                groupSpent: groupSpent,
-                adjustedGroupWin: adjustedGroupWin,
-                adjustment: adjustment(for: player)
-            )
-            return (id: player.id, value: valueAfterFood)
-        }
-        return balancedRoundedValues(exactFinalValues)
-    }
-
-    private func finalValue(for player: Player) -> Int {
-        finalValues[player.id] ?? 0
-    }
-
     private func deleteUser(at offsets: IndexSet) {
         players.remove(atOffsets: offsets)
     }
     
     var body: some View {
+        let settlement = SettlementCalculator.calculate(players: players)
+
         VStack(spacing: 0) {
             Label("Today: \(currentDate)", systemImage: "calendar")
             List {
-                HStack() {
+                HStack(spacing: 0) {
                     Text("Name")
                         .bold()
                         .frame(width: 70)
                     Text("Innn")
+                        .padding(.leading, 10)
                     Spacer()
                     Text("Outt")
                     Spacer()
@@ -191,38 +89,40 @@ struct ContentView: View {
                 .background(Color.yellow)
                 
                 ForEach(players) { player in
-                    HStack {
+                    HStack(spacing: 0) {
                         Text(String(player.name).fillSpace(limit: 5, alignment: .leading))
                             .bold()
                             .frame(width: 70)
                             .font(.system(size: 20, design: .monospaced))
-                        
+
                         Group {
                             Text("\(player.totalBuyIn)".fillSpace(limit: 4))
+                                .padding(.leading, 10)
                             Spacer()
                             Text("\(player.checkout)".fillSpace(limit: 4))
                             Spacer()
-                            if isMismatched {
+                            if isMismatched || shouldShownFoodSection {
                                 Text("\(player.current)".fillSpace(limit: 4))
-                                    .foregroundColor(player.winning ? Color.green : Color.red)
-                                Spacer()
-                                Text("\(adjustment(for: player))".fillSpace(limit: 4))
-                                Spacer()
+                                    .foregroundStyle(player.winning ? Color.green : Color.red)
                             } else {
                                 Text("_".fillSpace(limit: 4))
-                                Spacer()
-                                Text("_".fillSpace(limit: 4))
-                                Spacer()
                             }
+                            Spacer()
+                            if isMismatched {
+                                Text("\(settlement.adjustment(for: player))".fillSpace(limit: 4))
+                            } else {
+                                Text("_".fillSpace(limit: 4))
+                            }
+                            Spacer()
                         }
                         .font(.system(size: 14, design: .monospaced))
-                        
-                            Text("\(finalValue(for: player))".fillSpace(limit: 5))
-                                .bold()
-                                .padding(.horizontal, 5)
-                                .background(finalValue(for: player) > 0 ? Color.green : Color.red)
-                                .cornerRadius(4)
-                                .fixedSize()
+
+                        Text("\(settlement.finalValue(for: player))".fillSpace(limit: 5))
+                            .bold()
+                            .padding(.horizontal, 5)
+                            .background(settlement.finalValue(for: player) > 0 ? Color.green : Color.red)
+                            .cornerRadius(4)
+                            .fixedSize()
                     }
                     .contentShape(Rectangle())
                     .onTapGesture {
@@ -237,13 +137,13 @@ struct ContentView: View {
                         HStack {
                             Image(systemName: "fork.knife.circle.fill")
                                 .font(.largeTitle)
-                                .foregroundColor(.orange)
+                                .foregroundStyle(.orange)
                             Text("Total = \(players.map { $0.spent }.reduce(0, +))")
                         }
                         .frame(maxWidth: .infinity)
                         Divider()
                         VStack(alignment: .leading) {
-                            ForEach(players, id:\.name) { player in
+                            ForEach(players) { player in
                                 if player.spent > 0 {
                                     Text("\(player.name) \(player.spent)")
                                 }
@@ -277,25 +177,21 @@ struct ContentView: View {
                 }
                 .padding(.bottom, 5)
             }
-            .listStyle(PlainListStyle())
+            .listStyle(.plain)
             .border(isMismatched ? Color.red : Color.green, width: 2)
-            .frame(minHeight: UIScreen.main.bounds.size.height * 0.5)
             
             HStack {
-                Button {
+                Button("Reset", systemImage: "arrow.counterclockwise") {
                     isShowingResetAlert.toggle()
-                } label: {
-                    ZStack {
-                        RoundedRectangle(cornerSize: CGSize(width: 8, height: 8))
-                            .fill(Color.red)
-                            .frame(width: 150, height: 45)
-                        Text("Reset")
-                            .foregroundColor(Color.white)
-                    }
                 }
+                .buttonStyle(.borderedProminent)
+                .tint(.red)
+                .frame(width: 150, height: 45)
                 .alert("Are you sure to reset?", isPresented: $isShowingResetAlert) {
                     Button {
-                        players = players.map { Player(name: $0.name, buyInHistory: []) }
+                        for index in players.indices {
+                            players[index].reset()
+                        }
                     } label: {
                         Text("OK")
                     }
@@ -304,18 +200,13 @@ struct ContentView: View {
                 }
                 
                 Spacer()
-                
-                Button {
+
+                Button("Add Player", systemImage: "person.badge.plus") {
                     isAddingPlayer.toggle()
-                } label: {
-                    ZStack {
-                        RoundedRectangle(cornerSize: CGSize(width: 8, height: 8))
-                            .fill(Color.blue)
-                            .frame(width: 150, height: 45)
-                        Text("Add Player")
-                            .foregroundColor(Color.white)
-                    }
                 }
+                .buttonStyle(.borderedProminent)
+                .tint(.blue)
+                .frame(width: 150, height: 45)
             }
             .padding(.top, 10)
             .padding(.horizontal, 40)
@@ -323,10 +214,9 @@ struct ContentView: View {
         }
         .sheet(isPresented: $showingSheet) {
             print("Dismissing...")
-            let index = players.firstIndex { player in
-                player.name == selectedPlayer.name
-            } ?? 0
-            players[index] = selectedPlayer
+            if let index = players.firstIndex(where: { $0.id == selectedPlayer.id }) {
+                players[index] = selectedPlayer
+            }
         } content: {
             VStack {
                 PlayerView(player: self.$selectedPlayer)
@@ -364,17 +254,6 @@ struct ContentView: View {
     }
 }
 
-extension View {
-    func addToBottom<Content: View>(content: () -> Content) -> some View {
-        ZStack(alignment: .bottom) {
-            self
-            content()
-                .padding()
-        }
-    }
-}
-
-
 struct TextDecor: ViewModifier {
   let color: Color
   func body(content: Content) -> some View {
@@ -382,7 +261,7 @@ struct TextDecor: ViewModifier {
       .padding(4)
       .background(color.opacity(0.2))
       .cornerRadius(8)
-      .foregroundColor(color)
+      .foregroundStyle(color)
       .font(.title3)
       .frame(maxWidth: .infinity)
       .fixedSize()

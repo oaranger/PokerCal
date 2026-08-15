@@ -19,6 +19,8 @@
 		86E2C511293D3CD30057CE87 /* PlayerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E2C50F293D3CD30057CE87 /* PlayerView.swift */; };
 		86E2C513293D3D0A0057CE87 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E2C512293D3D0A0057CE87 /* Player.swift */; };
 		86E2C514293D3D0A0057CE87 /* Player.swift in Sources */ = {isa = PBXBuildFile; fileRef = 86E2C512293D3D0A0057CE87 /* Player.swift */; };
+		A10000012608150000000001 /* SettlementCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000002608150000000001 /* SettlementCalculator.swift */; };
+		A10000022608150000000001 /* SettlementCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A10000002608150000000001 /* SettlementCalculator.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -31,6 +33,7 @@
 		86E2C509293D321D0057CE87 /* TextFieldAlert.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextFieldAlert.swift; sourceTree = "<group>"; };
 		86E2C50F293D3CD30057CE87 /* PlayerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlayerView.swift; sourceTree = "<group>"; };
 		86E2C512293D3D0A0057CE87 /* Player.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Player.swift; sourceTree = "<group>"; };
+		A10000002608150000000001 /* SettlementCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettlementCalculator.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,6 +70,7 @@
 				861463EB293C2B6F0050D702 /* ContentView.swift */,
 				86E2C50F293D3CD30057CE87 /* PlayerView.swift */,
 				86E2C512293D3D0A0057CE87 /* Player.swift */,
+				A10000002608150000000001 /* SettlementCalculator.swift */,
 				86E2C509293D321D0057CE87 /* TextFieldAlert.swift */,
 				861463EC293C2B710050D702 /* Assets.xcassets */,
 			);
@@ -193,6 +197,7 @@
 				861463FA293C2B710050D702 /* PokerCalApp.swift in Sources */,
 				86E2C510293D3CD30057CE87 /* PlayerView.swift in Sources */,
 				86E2C513293D3D0A0057CE87 /* Player.swift in Sources */,
+				A10000012608150000000001 /* SettlementCalculator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -205,6 +210,7 @@
 				861463FB293C2B710050D702 /* PokerCalApp.swift in Sources */,
 				86E2C511293D3CD30057CE87 /* PlayerView.swift in Sources */,
 				86E2C514293D3D0A0057CE87 /* Player.swift in Sources */,
+				A10000022608150000000001 /* SettlementCalculator.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

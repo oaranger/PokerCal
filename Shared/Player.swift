@@ -5,15 +5,32 @@
 //  Created by Binh Huynh on 12/4/22.
 //
 
-import SwiftUI
+import Foundation
 
-struct BuyInEntry: Codable, Equatable {
+struct BuyInEntry: Codable, Identifiable, Equatable {
+    var id: UUID
     var amount: Int
     var timestamp: String
-    
-    static func == (lhs: BuyInEntry, rhs: BuyInEntry) -> Bool {
-        return lhs.amount == rhs.amount &&
-        lhs.timestamp == rhs.timestamp
+
+    init(
+        id: UUID = UUID(),
+        amount: Int,
+        timestamp: String = Date().formatted(date: .omitted, time: .standard)
+    ) {
+        self.id = id
+        self.amount = amount
+        self.timestamp = timestamp
+    }
+
+    private enum CodingKeys: String, CodingKey {
+        case id, amount, timestamp
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        id = try container.decodeIfPresent(UUID.self, forKey: .id) ?? UUID()
+        amount = try container.decode(Int.self, forKey: .amount)
+        timestamp = try container.decode(String.self, forKey: .timestamp)
     }
 }
 
@@ -28,7 +45,7 @@ struct Player: Codable, Identifiable, Equatable {
         self.name = name
         self.checkout = checkout
         self.spent = spent
-        self.buyInHistory = buyInHistory.map { BuyInEntry(amount: $0, timestamp: String.currentTime) }
+        self.buyInHistory = buyInHistory.map { BuyInEntry(amount: $0) }
     }
     
     var totalBuyIn: Int {
@@ -49,46 +66,4 @@ struct Player: Codable, Identifiable, Equatable {
         spent = 0
     }
     
-    static func == (lhs: Player, rhs: Player) -> Bool {
-        return lhs.id == rhs.id
-            && lhs.name == rhs.name
-            && lhs.buyInHistory == rhs.buyInHistory
-            && lhs.checkout == rhs.checkout
-            && lhs.spent == rhs.spent
-    }
-
-    func misMatchAdjustment(groupWin: Int, groupLose: Int) -> CGFloat {
-        switch (groupWin - abs(groupLose) > 0, winning) {
-        // group win more than lose, winning
-        case (true, true):
-            let newGroupWin = abs(groupLose)
-            return CGFloat(newGroupWin) * (CGFloat(current) / CGFloat(groupWin))
-        // group win more than lose, losing
-        case (true, false):
-            return CGFloat(current)
-        // group lose more than win, losing
-        case (false, false):
-            let newGroupLose = -groupWin
-            return CGFloat(newGroupLose) * CGFloat(current) / CGFloat(groupLose)
-        // group lose more than win, winning
-        case (false, true):
-            return CGFloat(current)
-        }
-    }
-    
-    func afterFood(groupSpent: Int, adjustedGroupWin: Int, adjustment: Int) -> CGFloat {
-        let postMisMatchAdjustment = CGFloat(adjustment)
-        guard adjustedGroupWin > 0 else { return postMisMatchAdjustment }
-
-        let adjustedGroupWin = CGFloat(adjustedGroupWin)
-        let groupSpent = CGFloat(groupSpent)
-        let spent = CGFloat(spent)
-
-        if adjustment > 0 {
-            return postMisMatchAdjustment
-                - (postMisMatchAdjustment / adjustedGroupWin) * groupSpent
-                + spent
-        }
-        return postMisMatchAdjustment + spent
-    }
 }

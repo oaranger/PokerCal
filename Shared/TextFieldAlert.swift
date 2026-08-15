@@ -15,9 +15,52 @@ struct TextFieldAlert<Presenting>: View where Presenting: View {
     @State private var name: String = ""
     @State private var buyIn: String = ""
     @State private var spent: String = ""
+    @State private var validationMessage: String?
+    @FocusState private var focusedField: Field?
         
     let presenting: Presenting
     let title: String
+
+    private enum Field {
+        case name, buyIn, spent
+    }
+
+    private func resetForm() {
+        name = ""
+        buyIn = ""
+        spent = ""
+        validationMessage = nil
+        focusedField = nil
+    }
+
+    private func addPlayer() {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else {
+            validationMessage = "Enter a player name."
+            return
+        }
+
+        guard let buyInAmount = buyIn.isEmpty ? 0 : Int(buyIn), buyInAmount >= 0 else {
+            validationMessage = "Buy-in must be zero or a positive whole number."
+            return
+        }
+
+        guard let spentAmount = spent.isEmpty ? 0 : Int(spent), spentAmount >= 0 else {
+            validationMessage = "Spent must be zero or a positive whole number."
+            return
+        }
+
+        players.insert(
+            Player(
+                name: trimmedName,
+                buyInHistory: [buyInAmount],
+                spent: spentAmount
+            ),
+            at: 0
+        )
+        resetForm()
+        isShowing = false
+    }
 
     var body: some View {
         GeometryReader { (deviceSize: GeometryProxy) in
@@ -26,24 +69,32 @@ struct TextFieldAlert<Presenting>: View where Presenting: View {
                     .disabled(isShowing)
                 VStack(spacing: 12) {
                     Text(self.title)
-                    Group {
-                        TextField("Name", text: $name)
-                        TextField("Buy In", text: $buyIn)
-                        TextField("Spent", text: $spent)
+                    TextField("Name", text: $name)
+                        .focused($focusedField, equals: .name)
+                        .textFieldStyle(.roundedBorder)
+                    TextField("Buy In", text: $buyIn)
+                        .focused($focusedField, equals: .buyIn)
+                        .numericKeyboard()
+                        .textFieldStyle(.roundedBorder)
+                    TextField("Spent", text: $spent)
+                        .focused($focusedField, equals: .spent)
+                        .numericKeyboard()
+                        .textFieldStyle(.roundedBorder)
+
+                    if let validationMessage {
+                        Text(validationMessage)
+                            .foregroundStyle(.red)
+                            .font(.footnote)
                     }
-                    .padding(.leading, 10)
-                    .frame(height: 56)
-                    .overlay(
-                        RoundedRectangle(cornerRadius: 8).stroke(Color.black, lineWidth: 0.5)
-                    )
                     
                     HStack {
                         Button(action: {
-                            self.isShowing.toggle()
+                            resetForm()
+                            self.isShowing = false
                         }) {
                             Text("Cancel")
                                 .font(.headline)
-                                .foregroundColor(.white)
+                                .foregroundStyle(.white)
                                 .padding()
                                 .frame(minWidth: 0, maxWidth: .infinity)
                                 .background(Color.red)
@@ -51,21 +102,11 @@ struct TextFieldAlert<Presenting>: View where Presenting: View {
                         }
 
                         Button(action: {
-                            guard !name.isEmpty else { return }
-                            var player = Player(name: name)
-//                            player.buyInHistory = [(Int(buyIn) ?? 0, String.currentTime)]
-                            let buyInEntry = BuyInEntry(amount: Int(buyIn) ?? 0, timestamp: String.currentTime)
-                            player.buyInHistory = [buyInEntry]
-                            player.spent = Int(spent) ?? 0
-                            players.insert(player, at: 0)
-                            name = ""
-                            buyIn = ""
-                            spent = ""
-                            self.isShowing.toggle()
+                            addPlayer()
                         }) {
                             Text("Add")
                                 .font(.headline)
-                                .foregroundColor(.white)
+                                .foregroundStyle(.white)
                                 .padding()
                                 .frame(minWidth: 0, maxWidth: .infinity)
                                 .background(Color.green)
@@ -83,7 +124,7 @@ struct TextFieldAlert<Presenting>: View where Presenting: View {
                 .opacity(self.isShowing ? 1 : 0)
                 .background(Color.gray)
                 .dimBG(condition: isShowing)
-                .hidden(isShowing)
+                .visible(when: isShowing)
             }
         }
     }
@@ -111,9 +152,6 @@ extension View {
             ZStack {
                 Color.black
                     .opacity(0.2)
-                    .onTapGesture {
-                        hideKeyboard()
-                    }
                 self
                     .background(Color.white)
                     .cornerRadius(16)
@@ -124,31 +162,22 @@ extension View {
     }
 }
 
-struct ConditionHiddenViewModifier: ViewModifier {
-    let shouldHidden: Bool
+struct ConditionalVisibilityModifier: ViewModifier {
+    let isVisible: Bool
     
     func body(content: Content) -> some View {
         Group {
-            if !shouldHidden {
+            if isVisible {
                 content
-                    .hidden()
             } else {
-                content
+                content.hidden()
             }
         }
     }
 }
 
 extension View {
-    func hidden(_ shouldHidden: Bool) -> some View {
-        modifier(ConditionHiddenViewModifier(shouldHidden: shouldHidden))
+    func visible(when isVisible: Bool) -> some View {
+        modifier(ConditionalVisibilityModifier(isVisible: isVisible))
     }
 }
-
-#if canImport(UIKit)
-extension View {
-    func hideKeyboard() {
-        UIApplication.shared.sendAction(#selector(UIResponder.resignFirstResponder), to: nil, from: nil, for: nil)
-    }
-}
-#endif
