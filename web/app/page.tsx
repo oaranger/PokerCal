@@ -87,26 +87,23 @@ export default function Home() {
             <tfoot><tr><td>Total</td><td>{settlement.totalIn}</td><td>{settlement.totalOut}</td><td>{settlement.showDiff ? players.reduce((sum, p) => sum + p.checkout - p.buyIns.reduce((t, b) => t + b.amount, 0), 0) : "_"}</td><td>{settlement.mismatched ? Object.values(settlement.adjustments).reduce((a, b) => a + b, 0) : "_"}</td><td><span className="zero-sum">0</span></td><td /></tr></tfoot>
           </table></div>
           <div className="mobile-settlements">
+            <div className="mobile-column-headings"><span>Player</span><span>In</span><span>Out</span><span>Diff</span><span>Adju</span><span>Final</span></div>
             {players.map((player) => {
               const totalBuyIn = player.buyIns.reduce((sum, entry) => sum + entry.amount, 0);
               const current = player.checkout - totalBuyIn;
               const adjustment = settlement.adjustments[player.id] ?? 0;
               const final = settlement.finalValues[player.id] ?? 0;
               return <article className="settlement-card" key={player.id}>
-                <button className="settlement-card-heading" onClick={() => setEditingId(player.id)}>
-                  <span><strong>{player.name}</strong>{player.spent > 0 && <small>Food / drink {player.spent}</small>}</span>
-                  <span className={`final-pill ${valueClass(final)}`}><small>FINAL</small>{final > 0 ? "+" : ""}{final}</span>
-                </button>
-                <div className="settlement-values">
-                  <div><span>In</span><strong>{totalBuyIn}</strong></div>
-                  <div><span>Out</span><strong>{player.checkout}</strong></div>
-                  <div><span>Diff</span><strong className={settlement.showDiff ? valueClass(current) : "muted"}>{settlement.showDiff ? current : "_"}</strong></div>
-                  <div><span>Adju</span><strong className={settlement.mismatched ? valueClass(adjustment) : "muted"}>{settlement.mismatched ? adjustment : "_"}</strong></div>
-                </div>
+                <button className="mobile-player-name" onClick={() => setEditingId(player.id)}><strong>{player.name}</strong>{player.spent > 0 && <small>Food {player.spent}</small>}</button>
+                <span>{totalBuyIn}</span>
+                <span>{player.checkout}</span>
+                <span className={settlement.showDiff ? valueClass(current) : "muted"}>{settlement.showDiff ? current : "_"}</span>
+                <span className={settlement.mismatched ? valueClass(adjustment) : "muted"}>{settlement.mismatched ? adjustment : "_"}</span>
+                <span className={`final-pill ${valueClass(final)}`}>{final > 0 ? "+" : ""}{final}</span>
               </article>;
             })}
-            <div className="mobile-zero-sum"><span>Final total</span><strong>0</strong></div>
-            <p className="mobile-edit-hint">Tap a player to edit their amounts.</p>
+            <div className="mobile-zero-sum"><strong>Total</strong><span>{settlement.totalIn}</span><span>{settlement.totalOut}</span><span>{settlement.showDiff ? players.reduce((sum, p) => sum + p.checkout - p.buyIns.reduce((t, b) => t + b.amount, 0), 0) : "_"}</span><span>{settlement.mismatched ? 0 : "_"}</span><strong>0</strong></div>
+            <p className="mobile-edit-hint">Tap a player name to edit.</p>
           </div></>
         )}
       </section>
